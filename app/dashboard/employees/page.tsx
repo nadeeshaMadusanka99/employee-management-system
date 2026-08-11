@@ -40,7 +40,6 @@ export default async function EmployeesPage() {
     LEFT JOIN departments d ON e.department_id = d.id
     ORDER BY e.created_at DESC
   `;
-    console.log("DB DATA:", employees);
 
     return (
         <div className="space-y-6">
