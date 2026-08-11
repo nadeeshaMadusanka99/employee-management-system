@@ -8,7 +8,7 @@ export async function createEmployee(formData: FormData) {
     const first_name = formData.get("first_name") as string;
     const last_name = formData.get("last_name") as string;
     const email = formData.get("email") as string;
-    const position = formData.get("position") as string;
+    const position_id = formData.get("position_id") as string;
     const department_id = formData.get("department_id") as string;
     const salary = formData.get("salary") as string;
 
@@ -18,8 +18,8 @@ export async function createEmployee(formData: FormData) {
       INSERT INTO employees (
         first_name, 
         last_name, 
-        email, 
-        position, 
+        email,
+        position_id, 
         department_id, 
         salary
       )
@@ -27,7 +27,7 @@ export async function createEmployee(formData: FormData) {
         ${first_name}, 
         ${last_name}, 
         ${email}, 
-        ${position}, 
+        ${position_id}, 
         ${department_id}, 
         ${salary}
       )
