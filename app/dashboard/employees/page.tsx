@@ -8,9 +8,8 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { AddEmployeeForm } from "@/components/AddEmployeeForm";
 
-// Type definition for employe row (Query returned)
 interface EmployeeRow {
     id: string;
     first_name: string;
@@ -24,7 +23,9 @@ interface EmployeeRow {
 }
 
 export default async function EmployeesPage() {
-    // Execute a raw SQL JOIN query to get employee data along with department name
+    const departments = await sql`
+        SELECT id, name FROM departments ORDER BY name ASC
+    `;
     const employees: EmployeeRow[] = await sql`
     SELECT 
       e.id,
@@ -50,7 +51,7 @@ export default async function EmployeesPage() {
                         Manage employee profiles, departments, and statuses.
                     </p>
                 </div>
-                <Button>+ Add Employee</Button>
+                <AddEmployeeForm departments={departments as any} />
             </div>
 
             <Card>
