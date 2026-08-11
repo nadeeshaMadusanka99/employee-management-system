@@ -1,46 +1,46 @@
+// app/dashboard/employees/page.tsx
 import sql from "@/lib/db";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AddEmployeeForm } from "@/components/AddEmployeeForm";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {AddEmployeeForm} from "@/components/AddEmployeeForm";
 
 interface EmployeeRow {
     id: string;
     first_name: string;
     last_name: string;
     email: string;
-    position: string;
+    position_title: string | null;
     department_name: string | null;
     salary: string;
     status: string;
-    joined_date: string;
 }
 
 export default async function EmployeesPage() {
-    const departments = await sql`
-        SELECT id, name FROM departments ORDER BY name ASC
-    `;
+    // 1. Fetch data for our form dropdowns concurrently!
+    const [departments, positions] = await Promise.all([
+        sql`SELECT id, name
+            FROM departments
+            ORDER BY name ASC`,
+        sql`SELECT id, title
+            FROM job_positions
+            ORDER BY title ASC`
+    ]);
+
+    // 2. Fetch employees, joining BOTH departments and job_positions
     const employees: EmployeeRow[] = await sql`
-    SELECT 
-      e.id,
-      e.first_name,
-      e.last_name,
-      e.email,
-      e.position,
-      e.salary,
-      e.status,
-      e.joined_date,
-      d.name as department_name
-    FROM employees e
-    LEFT JOIN departments d ON e.department_id = d.id
-    ORDER BY e.created_at DESC
-  `;
+        SELECT e.id,
+               e.first_name,
+               e.last_name,
+               e.email,
+               p.title as position_title,
+               d.name  as department_name,
+               e.salary,
+               e.status
+        FROM employees e
+                 LEFT JOIN departments d ON e.department_id = d.id
+                 LEFT JOIN job_positions p ON e.position_id = p.id
+        ORDER BY e.created_at DESC
+    `;
 
     return (
         <div className="space-y-6">
@@ -51,7 +51,11 @@ export default async function EmployeesPage() {
                         Manage employee profiles, departments, and statuses.
                     </p>
                 </div>
-                <AddEmployeeForm departments={departments as any} />
+                {/* Pass the fetched data to our Client Component form */}
+                <AddEmployeeForm
+                    departments={departments as any}
+                    positions={positions as any}
+                />
             </div>
 
             <Card>
@@ -77,7 +81,7 @@ export default async function EmployeesPage() {
                                         {emp.first_name} {emp.last_name}
                                     </TableCell>
                                     <TableCell>{emp.email}</TableCell>
-                                    <TableCell>{emp.position}</TableCell>
+                                    <TableCell>{emp.position_title ?? "Unassigned"}</TableCell>
                                     <TableCell>{emp.department_name ?? "Unassigned"}</TableCell>
                                     <TableCell>${Number(emp.salary).toLocaleString()}</TableCell>
                                     <TableCell>
@@ -85,7 +89,7 @@ export default async function EmployeesPage() {
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             emp.status === "ACTIVE"
                                 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                                : "bg-slate-100 text-slate-800"
+                                : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300"
                         }`}
                     >
                       {emp.status}
